@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelBookingSystem.Data;
+using HotelBookingSystem.DTOs;
 using HotelBookingSystem.Models;
 
 namespace HotelBookingSystem.Controllers;
@@ -31,18 +32,25 @@ public class ServicesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Service>> CreateService(Service service)
+    public async Task<ActionResult<Service>> CreateService(ServiceDto dto)
     {
+        var service = new Service
+        {
+            Name = dto.Name,
+            Price = dto.Price
+        };
         _context.Services.Add(service);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateService(int id, Service service)
+    public async Task<IActionResult> UpdateService(int id, ServiceDto dto)
     {
-        if (id != service.Id) return BadRequest();
-        _context.Entry(service).State = EntityState.Modified;
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound();
+        service.Name = dto.Name;
+        service.Price = dto.Price;
         await _context.SaveChangesAsync();
         return NoContent();
     }

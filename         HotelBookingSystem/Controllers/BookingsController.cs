@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelBookingSystem.Data;
+using HotelBookingSystem.DTOs;
 using HotelBookingSystem.Models;
 
 namespace HotelBookingSystem.Controllers;
@@ -37,18 +38,33 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Booking>> CreateBooking(Booking booking)
+    public async Task<ActionResult<Booking>> CreateBooking(BookingDto dto)
     {
+        var booking = new Booking
+        {
+            CheckIn = dto.CheckIn,
+            CheckOut = dto.CheckOut,
+            Status = dto.Status,
+            TotalPrice = dto.TotalPrice,
+            UserId = dto.UserId,
+            RoomId = dto.RoomId
+        };
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, booking);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBooking(int id, Booking booking)
+    public async Task<IActionResult> UpdateBooking(int id, BookingDto dto)
     {
-        if (id != booking.Id) return BadRequest();
-        _context.Entry(booking).State = EntityState.Modified;
+        var booking = await _context.Bookings.FindAsync(id);
+        if (booking == null) return NotFound();
+        booking.CheckIn = dto.CheckIn;
+        booking.CheckOut = dto.CheckOut;
+        booking.Status = dto.Status;
+        booking.TotalPrice = dto.TotalPrice;
+        booking.UserId = dto.UserId;
+        booking.RoomId = dto.RoomId;
         await _context.SaveChangesAsync();
         return NoContent();
     }

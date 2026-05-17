@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelBookingSystem.Data;
+using HotelBookingSystem.DTOs;
 using HotelBookingSystem.Models;
 
 namespace HotelBookingSystem.Controllers;
@@ -16,14 +17,12 @@ public class RoomsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/rooms
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
     {
         return await _context.Rooms.ToListAsync();
     }
 
-    // GET: api/rooms/1
     [HttpGet("{id}")]
     public async Task<ActionResult<Room>> GetRoom(int id)
     {
@@ -32,26 +31,36 @@ public class RoomsController : ControllerBase
         return room;
     }
 
-    // POST: api/rooms
     [HttpPost]
-    public async Task<ActionResult<Room>> CreateRoom(Room room)
+    public async Task<ActionResult<Room>> CreateRoom(RoomDto dto)
     {
+        var room = new Room
+        {
+            Name = dto.Name,
+            Type = dto.Type,
+            PricePerNight = dto.PricePerNight,
+            Description = dto.Description,
+            IsAvailable = dto.IsAvailable
+        };
         _context.Rooms.Add(room);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, room);
     }
 
-    // PUT: api/rooms/1
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateRoom(int id, Room room)
+    public async Task<IActionResult> UpdateRoom(int id, RoomDto dto)
     {
-        if (id != room.Id) return BadRequest();
-        _context.Entry(room).State = EntityState.Modified;
+        var room = await _context.Rooms.FindAsync(id);
+        if (room == null) return NotFound();
+        room.Name = dto.Name;
+        room.Type = dto.Type;
+        room.PricePerNight = dto.PricePerNight;
+        room.Description = dto.Description;
+        room.IsAvailable = dto.IsAvailable;
         await _context.SaveChangesAsync();
         return NoContent();
     }
 
-    // DELETE: api/rooms/1
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteRoom(int id)
     {

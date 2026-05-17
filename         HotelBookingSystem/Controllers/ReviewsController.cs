@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HotelBookingSystem.Data;
+using HotelBookingSystem.DTOs;
 using HotelBookingSystem.Models;
 
 namespace HotelBookingSystem.Controllers;
@@ -37,18 +38,29 @@ public class ReviewsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Review>> CreateReview(Review review)
+    public async Task<ActionResult<Review>> CreateReview(ReviewDto dto)
     {
+        var review = new Review
+        {
+            Comment = dto.Comment,
+            Rating = dto.Rating,
+            UserId = dto.UserId,
+            RoomId = dto.RoomId
+        };
         _context.Reviews.Add(review);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateReview(int id, Review review)
+    public async Task<IActionResult> UpdateReview(int id, ReviewDto dto)
     {
-        if (id != review.Id) return BadRequest();
-        _context.Entry(review).State = EntityState.Modified;
+        var review = await _context.Reviews.FindAsync(id);
+        if (review == null) return NotFound();
+        review.Comment = dto.Comment;
+        review.Rating = dto.Rating;
+        review.UserId = dto.UserId;
+        review.RoomId = dto.RoomId;
         await _context.SaveChangesAsync();
         return NoContent();
     }
